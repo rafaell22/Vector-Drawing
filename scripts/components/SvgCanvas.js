@@ -207,7 +207,7 @@ export default {
         this.svgElement = document.createElementNS(this.XMLNS, 'svg');
         this.svgElement.setAttributeNS(null, 'viewBox', `${this.viewport.x} ${this.viewport.y} ${this.viewport.width} ${this.viewport.height}`);
         this.svgElement.setAttributeNS(null, 'width', window.innerWidth);
-        this.svgElement.setAttributeNS(null, 'height', window.innerHeight - 78);
+        this.svgElement.setAttributeNS(null, 'height', window.innerHeight);
         this.svgElement.style.backgroundColor = '#dddddd';
     },
     createImageBorders: function() {

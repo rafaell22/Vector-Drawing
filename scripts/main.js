@@ -15,7 +15,7 @@ app.createStore('drawing', drawing);
 // app.createComponent('Canvas', Canvas);
 // app.createComponent('DrawStepInput', DrawStepInput);
 // app.createComponent('DrawTouchInput', DrawTouchInput);
-// app.createComponent('SvgCanvas', SvgCanvas);
+app.createComponent('SvgCanvas', SvgCanvas);
 
 console.log(app);
 app.start();
