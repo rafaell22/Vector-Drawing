@@ -20,8 +20,12 @@ export default {
                 <input type="button" value="h">
                 <input type="button" value="v">
             </div>
-            <div class="keyboard-command-upper  hidden">
-                <input type="button" value="^">
+            <div class="keyboard-command-upper hidden">
+                <input type="button" value="^"
+                  data-bind="{
+                      '@click': 'toLower'
+                  }"
+                >
                 <input type="button" value="M">
                 <input type="button" value="L">
                 <input type="button" value="H">
@@ -41,7 +45,7 @@ export default {
         }
         
         .draw-step-simplified-input .hidden {
-            display: none;
+            display: none !important;
         }
         
         .draw-step-simplified-input .draw-step {
@@ -72,7 +76,6 @@ export default {
         
          .draw-step-simplified-input input {
              height: 32px;
-             max-width: 80px;
              font-size: 24px;
              font-weight: bold;
              flex: 1;
@@ -96,9 +99,12 @@ export default {
           this.step = this.elInput.value;
       },
       toUpper: function() {
-          console.log('to upper...')
           this.rootElement.querySelector('.keyboard-command').classList.add('hidden');
           this.rootElement.querySelector('.keyboard-command-upper').classList.remove('hidden');
+      },
+      toLower: function() {
+          this.rootElement.querySelector('.keyboard-command').classList.remove('hidden');
+          this.rootElement.querySelector('.keyboard-command-upper').classList.add('hidden');
       }
     },
     mounted: function() {}
