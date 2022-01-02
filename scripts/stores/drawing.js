@@ -1,6 +1,10 @@
 export default {
     state: {
       steps: [],
+      crosshairs: {
+          x: 0,
+          y: 0,
+      }
     },
     mutations: {
       addStep: function({ state }, path) {
@@ -36,6 +40,14 @@ export default {
               }
           }
       },
+      updateCrosshairs: function({ state }, { dx, dy }) {
+          state.crosshairs.x += dx;
+          state.crosshaits.y += dy;
+      },
+      setCrosshairs: function({ state }, { x, y }) {
+          state.crosshairs.x = x;
+          state.crosshaits.y = y;
+      },
     },
     actions: {
       draw: function({ mutations, state }, path) {
@@ -44,12 +56,19 @@ export default {
 
         switch (command) {
           case 'M':
+              if (commandArguments.length !== 2) {
+                return;
+              }
+
+              mutations.addStep(path);
+              mutations.setCrosshairs({ x: commandArguments[0], y: commandArguments[1] });
           case 'm':
               if (commandArguments.length !== 2) {
                 return;
               }
 
               mutations.addStep(path);
+              mutations.updateCrosshairs({ dx: commandArguments[0], dy: commandArguments[1] });
               break;
           case 'FILL':
               if (commandArguments.length !== 1) {
