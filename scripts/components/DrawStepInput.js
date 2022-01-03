@@ -1,11 +1,3 @@
-// import app
-import app from './app.js';
-
-// import actions
-const { draw } = app.$stores.drawing.actions;
-
-// import state?
-
 export default {
     template: `
         <div class="draw-step-input">
@@ -103,11 +95,9 @@ export default {
       isSubmenuNotShowing: true,
     },
     methods: {
-        // actions
-        draw: draw,
         // custom methods
         addDrawStep: function() {
-            this.draw(this.step);
+            this.app.$stores.drawing.actions.draw(this.step);
             this.step = '';
         },
       updateStep: function() {
@@ -157,6 +147,7 @@ export default {
             return;
           }
 
+          this.buttonTouchStart = null;
           this.addDrawStep();
       },
     },

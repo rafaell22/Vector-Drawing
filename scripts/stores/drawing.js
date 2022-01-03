@@ -1,3 +1,5 @@
+import Step from '../classes/Step.js';
+
 export default {
     state: {
       steps: [],
@@ -42,11 +44,11 @@ export default {
       },
       updateCrosshairs: function({ state }, { dx, dy }) {
           state.crosshairs.x += dx;
-          state.crosshaits.y += dy;
+          state.crosshairs.y += dy;
       },
       setCrosshairs: function({ state }, { x, y }) {
           state.crosshairs.x = x;
-          state.crosshaits.y = y;
+          state.crosshairs.y = y;
       },
     },
     actions: {

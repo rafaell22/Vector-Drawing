@@ -1,9 +1,3 @@
-// import app
-import app from './app.js';
-
-// import actions
-import { draw } from app.$stores.drawing.actions;
-
 export default {
   template: `
       <div class='svg-canvas'>
