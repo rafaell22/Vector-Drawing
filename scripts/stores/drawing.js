@@ -1,6 +1,12 @@
+import Step from '../classes/Step.js';
+
 export default {
     state: {
       steps: [],
+      crosshairs: {
+          x: 0,
+          y: 0,
+      }
     },
     mutations: {
       addStep: function({ state }, path) {
@@ -35,6 +41,18 @@ export default {
                   }
               }
           }
+          
+          console.log('currentStep: ', currentStep);
+      },
+      updateCrosshairs: function({ state }, { dx, dy }) {
+          state.crosshairs.x += dx;
+          state.crosshairs.y += dy;
+          console.log('Update: ', state.crosshairs);
+      },
+      setCrosshairs: function({ state }, { x, y }) {
+          state.crosshairs.x = x;
+          state.crosshairs.y = y;
+          console.log('Set: ', state.crosshairs);
       },
     },
     actions: {
@@ -44,12 +62,20 @@ export default {
 
         switch (command) {
           case 'M':
+              if (commandArguments.length !== 2) {
+                return;
+              }
+
+              mutations.addStep(path);
+              mutations.setCrosshairs({ x: parseFloat(commandArguments[0]), y: parseFloat(commandArguments[1]) });
+              break;
           case 'm':
               if (commandArguments.length !== 2) {
                 return;
               }
 
               mutations.addStep(path);
+              mutations.updateCrosshairs({ dx: parseFloat(commandArguments[0]), dy: parseFloat(commandArguments[1]) });
               break;
           case 'FILL':
               if (commandArguments.length !== 1) {
@@ -97,12 +123,21 @@ export default {
               mutations.updateStep(path, null, (state.steps.length - 1));
               break;
           case 'L':
+              if (commandArguments.length !== 2) {
+                return;
+              }
+              
+              mutations.updateStep(path, null, (state.steps.length - 1));
+              mutations.setCrosshairs({ x: parseFloat(commandArguments[0]), y: parseFloat(commandArguments[1]) });
+              break;
           case 'l':
               if (commandArguments.length !== 2) {
                 return;
               }
               
               mutations.updateStep(path, null, (state.steps.length - 1));
+              mutations.updateCrosshairs({ dx: parseFloat(commandArguments[0]), dy: parseFloat(commandArguments[1]) });
+              break;
           default:
               if(
                 state.steps.length === 0
@@ -117,6 +152,9 @@ export default {
     getters: {
       steps: function() {
         return this.state.steps;
+      },
+      crosshairs: function() {
+        return this.state.crosshairs;
       },
     },
   };

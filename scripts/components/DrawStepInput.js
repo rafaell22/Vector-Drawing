@@ -1,7 +1,8 @@
 export default {
     template: `
         <div class="draw-step-input">
-            <input type="text" class="draw-step" 
+            <input type="text" class="draw-step"
+                placeholder="Enter command"
                 data-bind="{
                     'value':'step',
                     '@input':'updateStep'
@@ -29,6 +30,9 @@ export default {
     `,
     styles: `
         .draw-step-input {
+            position: absolute;
+            bottom: 0;
+            left: 0;
             width: 100%;
             padding: 10px;
         }
@@ -91,10 +95,11 @@ export default {
       isSubmenuNotShowing: true,
     },
     methods: {
-      addDrawStep: function() {
-          this.app.$stores.drawing.actions.draw(this.step);
-          this.step = '';
-      },
+        // custom methods
+        addDrawStep: function() {
+            this.app.$stores.drawing.actions.draw(this.step);
+            this.step = '';
+        },
       updateStep: function() {
           this.step = this.elInput.value;
       },
@@ -142,8 +147,9 @@ export default {
             return;
           }
 
+          this.buttonTouchStart = null;
           this.addDrawStep();
-      }
+      },
     },
     mounted: function() {
       // Create a reference to the input element

@@ -10,6 +10,10 @@ export default {
       </div>
   `,
   styles: `
+    .svg-canvas {
+        position: relative;
+    }
+    
     .svg-canvas svg {
       border: 1px solid black;
       padding: 0; 
@@ -73,6 +77,7 @@ export default {
           jsons: []
       },
       svgElement: null,
+      svgCrosshairs: null,
       background: {},
       paths: [],
   },
@@ -86,14 +91,20 @@ export default {
     this.viewport.height = this.size.height + 2 * this.BORDER_WIDTH;
     
     // create root svg
-    this.createMainSvgElement();
+    this.svgElement = this.createMainSvgElement();
     
     // create the image borders
     this.svgElement.appendChild(this.createImageBorders());
    
+    // create the image crosshairs
+    this.svgCrosshairs = this.createImageCrosshairs();
+    this.svgElement.appendChild(this.svgCrosshairs);
+   
     this.rootElement.querySelector('.svg-canvas').appendChild(this.svgElement);
     
     this.addEventListeners();
+    
+    this.app.$stores.drawing.actions.draw('M 0 0');
   },
   methods: {
     loadImage: function(src) {
@@ -204,11 +215,13 @@ export default {
     },
     createMainSvgElement: function() {
         // create the main svg element
-        this.svgElement = document.createElementNS(this.XMLNS, 'svg');
-        this.svgElement.setAttributeNS(null, 'viewBox', `${this.viewport.x} ${this.viewport.y} ${this.viewport.width} ${this.viewport.height}`);
-        this.svgElement.setAttributeNS(null, 'width', window.innerWidth);
-        this.svgElement.setAttributeNS(null, 'height', window.innerHeight);
-        this.svgElement.style.backgroundColor = '#dddddd';
+        const svgElement = document.createElementNS(this.XMLNS, 'svg');
+        svgElement.setAttributeNS(null, 'viewBox', `${this.viewport.x} ${this.viewport.y} ${this.viewport.width} ${this.viewport.height}`);
+        svgElement.setAttributeNS(null, 'width', window.innerWidth);
+        svgElement.setAttributeNS(null, 'height', window.innerHeight); // - 140);
+        svgElement.style.backgroundColor = '#dddddd';
+        
+        return svgElement;
     },
     createImageBorders: function() {
         const g = document.createElementNS(this.XMLNS, 'g');
@@ -225,6 +238,23 @@ export default {
         path.setAttributeNS(null, 'd', imageBorders);
         path.setAttributeNS(null, 'opacity', 1.0);
         path.setAttributeNS(null, 'fill', '#ffffff');
+        g.appendChild(path);
+        
+        return g;
+    },
+    createImageCrosshairs: function() {
+        const g = document.createElementNS(this.XMLNS, 'g');
+        const crosshairs = `
+          m -2 -2
+          l 4 4
+          m -4 0
+          l 4 -4
+          `;
+        const path = document.createElementNS(this.XMLNS, 'path');
+        path.setAttributeNS(null, 'stroke', '#ff0000');
+        path.setAttributeNS(null, 'stroke-width', 1);
+        path.setAttributeNS(null, 'd', crosshairs);
+        path.setAttributeNS(null, 'opacity', 1.0);
         g.appendChild(path);
         
         return g;
@@ -254,6 +284,16 @@ export default {
           const lastStep = steps[steps.length - 1];
           this.paths.push(steps[lastStep]);
           this.updatePath(lastStep);
+        }).bind(this));
+        
+        this.app.$pubSub.subscribe('store.drawing.setCrosshairs', (function() {
+            const crosshairsPosition = this.app.$stores.drawing.getters.crosshairs;
+            this.svgCrosshairs.setAttributeNS(null, 'transform', `translate(${crosshairsPosition.x} ${crosshairsPosition.y})`);
+        }).bind(this));
+        
+        this.app.$pubSub.subscribe('store.drawing.updateCrosshairs', (function() {
+            const crosshairsPosition = this.app.$stores.drawing.getters.crosshairs;
+            this.svgCrosshairs.setAttributeNS(null, 'transform', `translate(${crosshairsPosition.x} ${crosshairsPosition.y})`);
         }).bind(this));
         console.log('Done!');
     },
