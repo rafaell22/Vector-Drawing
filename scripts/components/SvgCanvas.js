@@ -103,6 +103,8 @@ export default {
     this.rootElement.querySelector('.svg-canvas').appendChild(this.svgElement);
     
     this.addEventListeners();
+    
+    this.app.$stores.drawing.actions.draw('M 0 0');
   },
   methods: {
     loadImage: function(src) {

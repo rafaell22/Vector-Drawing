@@ -41,6 +41,8 @@ export default {
                   }
               }
           }
+          
+          console.log('currentStep: ', currentStep);
       },
       updateCrosshairs: function({ state }, { dx, dy }) {
           state.crosshairs.x += dx;
@@ -135,6 +137,7 @@ export default {
               
               mutations.updateStep(path, null, (state.steps.length - 1));
               mutations.updateCrosshairs({ dx: parseFloat(commandArguments[0]), dy: parseFloat(commandArguments[1]) });
+              break;
           default:
               if(
                 state.steps.length === 0
