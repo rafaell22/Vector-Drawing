@@ -284,13 +284,14 @@ export default {
           this.updatePath(lastStep);
         }).bind(this));
         
-        this.app.$pubSub.subscribe('store.drawing.setCrosshais', (function() {
+        this.app.$pubSub.subscribe('store.drawing.setCrosshairs', (function() {
             const crosshairsPosition = this.app.$stores.drawing.getters.crosshairs;
-            this.svgCrosshairs.setAttributeNS(null, 'transform', `translate(${crosshairsPosition.x} ${crosshairsPosition})`);
+            this.svgCrosshairs.setAttributeNS(null, 'transform', `translate(${crosshairsPosition.x} ${crosshairsPosition.y})`);
         }).bind(this));
         
-        this.app.$pubSub.subscribe('store.drawing.updateCrosshais', (function() {
-            
+        this.app.$pubSub.subscribe('store.drawing.updateCrosshairs', (function() {
+            const crosshairsPosition = this.app.$stores.drawing.getters.crosshairs;
+            this.svgCrosshairs.setAttributeNS(null, 'transform', `translate(${crosshairsPosition.x} ${crosshairsPosition.y})`);
         }).bind(this));
         console.log('Done!');
     },
