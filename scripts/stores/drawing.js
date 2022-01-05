@@ -107,20 +107,36 @@ export default {
               }, (state.steps.length - 1));
               break;
           case 'H':
+              if (commandArguments.length !== 1) {
+                return;
+              }
+
+              mutations.updateStep(path, null, (state.steps.length - 1));
+              mutations.setCrosshairs({ x: parseFloat(commandArguments[0]), y: 0 });
+              break;
           case 'h':
               if (commandArguments.length !== 1) {
                 return;
               }
           
               mutations.updateStep(path, null, (state.steps.length - 1));
+              mutations.updateCrosshairs({ dx: parseFloat(commandArguments[0]), dy: 0 });
               break;
           case 'V':
+              if (commandArguments.length !== 1) {
+                return;
+              }
+
+              mutations.updateStep(path, null, (state.steps.length - 1));
+              mutations.setCrosshairs({ x: 0, y: parseFloat(commandArguments[0]) });
+              break;
           case 'v':
               if (commandArguments.length !== 1) {
                 return;
               }
           
               mutations.updateStep(path, null, (state.steps.length - 1));
+              mutations.updateCrosshairs({ dx: 0, dy: parseFloat(commandArguments[0]) });
               break;
           case 'L':
               if (commandArguments.length !== 2) {
