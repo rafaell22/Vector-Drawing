@@ -154,6 +154,38 @@ export default {
               mutations.updateStep(path, null, (state.steps.length - 1));
               mutations.updateCrosshairs({ dx: parseFloat(commandArguments[0]), dy: parseFloat(commandArguments[1]) });
               break;
+          case 'C':
+              if (commandArguments.length !== 6) {
+                return;
+              }
+              
+              mutations.updateStep(path, null, (state.steps.length - 1));
+              mutations.setCrosshairs({ x: parseFloat(commandArguments[4]), y: parseFloat(commandArguments[5]) });
+              break;
+          case 'c':
+              if (commandArguments.length !== 6) {
+                return;
+              }
+              
+              mutations.updateStep(path, null, (state.steps.length - 1));
+              mutations.updateCrosshairs({ dx: parseFloat(commandArguments[4]), dy: parseFloat(commandArguments[5]) });
+              break;
+          case 'S':
+              if (commandArguments.length !== 4) {
+                return;
+              }
+              
+              mutations.updateStep(path, null, (state.steps.length - 1));
+              mutations.setCrosshairs({ x: parseFloat(commandArguments[2]), y: parseFloat(commandArguments[3]) });
+              break;
+          case 's':
+              if (commandArguments.length !== 4) {
+                return;
+              }
+              
+              mutations.updateStep(path, null, (state.steps.length - 1));
+              mutations.updateCrosshairs({ dx: parseFloat(commandArguments[2]), dy: parseFloat(commandArguments[3]) });
+              break;
           default:
               if(
                 state.steps.length === 0
