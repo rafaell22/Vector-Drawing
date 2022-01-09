@@ -295,10 +295,10 @@ export default {
           case /s/i.test(command):
               if (commandArguments.length !== 4) {
                 if (commandArguments.length < 4) {
-                  throw new Error('Missing arguments for command "Cubic Bezier Curve"');
+                  throw new Error('Missing arguments for command "Smooth Cubic Bezier Curve"');
                   return;
                 } else {
-                  throw new Error('Too many arguments for command "Cubic Bezier Curve"');
+                  throw new Error('Too many arguments for command "Smooth Cubic Bezier Curve"');
                   return;
                 }
                 return;
@@ -326,7 +326,7 @@ export default {
                 validate(smoothCubic.x1).number();
                 validate(smoothCubic.y1).number();
               } catch (errorParsingArguments) {
-                throw new Error('Error running "Cubic Bezier Curve". Some of the arguments are not "Numbers"');
+                throw new Error('Error running "Smooth Cubic Bezier Curve". Some of the arguments are not "Numbers"');
                 return;
               }
     
@@ -337,6 +337,96 @@ export default {
                   break;
                 case 's':
                   mutations.updateCrosshairs({ dx: smoothCubic.x, dy: smoothCubic.y });
+                  break;
+                default:
+              }
+              break;
+          case /q/i.test(command):
+              if (commandArguments.length !== 4) {
+                if (commandArguments.length < 4) {
+                  throw new Error('Missing arguments for command "Quadratic Bezier Curve"');
+                  return;
+                } else {
+                  throw new Error('Too many arguments for command "Quadratic Bezier Curve"');
+                  return;
+                }
+                return;
+              }
+
+              const quadratic = {
+                // x position of the end of the curve
+                x: null,
+                // y position of the end of the curve
+                y: null,
+                // x position of the control point of the starting point
+                x1: null,
+                // y position of the control point of the starting point
+                y1: null,
+              };
+              
+              try {
+                quadratic.x = parseFloat(commandArguments[2]);
+                quadratic.y = parseFloat(commandArguments[3]);
+                quadratic.x1 = parseFloat(commandArguments[0]);
+                quadratic.y1 = parseFloat(commandArguments[1]);
+                
+                validate(quadratic.x).number();
+                validate(quadratic.y).number();
+                validate(quadratic.x1).number();
+                validate(quadratic.y1).number();
+              } catch (errorParsingArguments) {
+                throw new Error('Error running "Quadratic Bezier Curve". Some of the arguments are not "Numbers"');
+                return;
+              }
+
+              mutations.updateStep(path, null, (state.steps.length - 1));
+              switch (command) {
+                case 'Q':
+                  mutations.setCrosshairs({ x: quadratic.x, y: quadratic.y });
+                  break;
+                case 'q':
+                  mutations.updateCrosshairs({ dx: quadratic.x, dy: quadratic.y });
+                  break;
+                default:
+              }
+              break;
+          case /t/i.test(command):
+              if (commandArguments.length !== 2) {
+                if (commandArguments.length < 2) {
+                  throw new Error('Missing arguments for command "Smooth Quadratic Bezier Curve"');
+                  return;
+                } else {
+                  throw new Error('Too many arguments for command "Smooth Quadratic Bezier Curve"');
+                  return;
+                }
+                return;
+              }
+    
+              const smoothQuadratic = {
+                // x position of the end of the curve
+                x: null,
+                // y position of the end of the curve
+                y: null,
+              }
+              
+              try {
+                smoothQuadratic.x = parseFloat(commandArguments[0]);
+                smoothQuadratic.y = parseFloat(commandArguments[1]);
+                
+                validate(smoothQuadratic.x).number();
+                validate(smoothQuadratic.y).number();
+              } catch (errorParsingArguments) {
+                throw new Error('Error running "Smooth Quadratic Bezier Curve". Some of the arguments are not "Numbers"');
+                return;
+              }
+    
+              mutations.updateStep(path, null, (state.steps.length - 1));
+              switch (command) {
+                case 'T':
+                  mutations.setCrosshairs({ x: smoothQuadratic.x, y: smoothQuadratic.y });
+                  break;
+                case 't':
+                  mutations.updateCrosshairs({ dx: smoothQuadratic.x, dy: smoothQuadratic.y });
                   break;
                 default:
               }
