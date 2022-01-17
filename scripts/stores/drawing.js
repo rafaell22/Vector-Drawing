@@ -3,17 +3,18 @@ import validate from 'https://cdn.jsdelivr.net/gh/rafaell22/type-validation@0.2.
 // import validate from 'http://localhost:8080/validation.js';
 
 const COMMANDS = {
-  MOVE: new RegExp('m', 'i'),
-  FILL: new RegExp('FILL', 'i'),
-  STROKE: new RegExp('STROKE', 'i'),
-  HORIZONTAL_LINE: new RegExp('h', 'i'),
-  VERTICAL_LINE: new RegExp('v', 'i'),
-  LINE: new RegExp('l', 'i'),
-  CUBIC_BEZIER_CURVE: new RegExp('c', 'i'),
-  SMOOTH_CUBIC_BEZIER_CURVE: new RegExp('s', 'i'),
-  QUADRATIC_BEZIER_CURVE: new RegExp('q', 'i'),
-  SMOOTH_QUADRATIC_BEZIER_CURVE: new RegExp('t', 'i'),
-  ELLIPTICAL_ARC_CURVE: new RegExp('a', 'i'),
+  MOVE: new RegExp('^m$', 'i'),
+  FILL: new RegExp('^FILL$', 'i'),
+  STROKE: new RegExp('^STROKE$', 'i'),
+  HORIZONTAL_LINE: new RegExp('^h$', 'i'),
+  VERTICAL_LINE: new RegExp('^v$', 'i'),
+  LINE: new RegExp('^l$', 'i'),
+  CUBIC_BEZIER_CURVE: new RegExp('^c$', 'i'),
+  SMOOTH_CUBIC_BEZIER_CURVE: new RegExp('^s$', 'i'),
+  QUADRATIC_BEZIER_CURVE: new RegExp('^q$', 'i'),
+  SMOOTH_QUADRATIC_BEZIER_CURVE: new RegExp('^t$', 'i'),
+  ELLIPTICAL_ARC_CURVE: new RegExp('^a$', 'i'),
+  RESIZE_CANVAS: new RegExp('^resize-canvas$', 'i'),
 }
 
 export default {
@@ -22,7 +23,11 @@ export default {
       crosshairs: {
           x: 0,
           y: 0,
-      }
+      },
+      canvas: {
+          width: 48, // in px
+          height: 48, // in px
+      },
     },
     mutations: {
       addStep: function({ state }, path) {
@@ -66,8 +71,52 @@ export default {
           state.crosshairs.x = x;
           state.crosshairs.y = y;
       },
+      setCanvasSize: function({ state }, { width, height }) {
+          state.canvas.width = width;
+          state.canvas.height = height;
+      },
     },
     actions: {
+        // load images from local folder
+        loadImage: function(src) {
+            return new Promise((resolve, reject) => {
+                const elImage = document.createElement('IMG');
+                elImage.addEventListener('load', function() {
+                    resolve(elImage);
+                });
+                elImage.src = `../../images/${src}.png`;
+            });
+        },
+        // load multiple images from local folders
+        loadImages: async function(sources) {
+            for(let sourceIndex = (sources.length - 1); sourceIndex > -1; sourceIndex--) {
+                this.cache.images[sources[sourceIndex]] = await this.loadImage(sources[sourceIndex]);
+            }
+        },
+        // load json file from local folder
+        loadJson: function(url) {
+            return new Promise((resolve, reject) => {
+                const request = new XMLHttpRequest();
+                request.onreadystatechange = function() {
+                    // if DONE and SUCCESS
+                    if ((request.readyState == 4) && (request.status == 200)) {
+                        resolve(JSON.parse(request.responseText));
+                    }
+                }
+                request.open("GET", url + ".json", true);
+                request.onError = function(event) { 
+                    console.log('ERROR!')
+                    throw new Error(event); 
+                 };
+                request.send();
+            });
+        },
+        // load multiple json files from local folder
+        loadJsons: async function(urls) {
+            for(let urlIndex = (urls.length - 1); urlIndex > -1; urlIndex--) {
+              this.cache.jsons[urls[urlIndex]] = await this.loadJson(urls[urlIndex]);
+            }
+        },
       draw: function({ mutations, state }, path) {
         const command = path.split(' ')[0];
         const commandArguments = path.split(' ').slice(1);
@@ -105,6 +154,9 @@ export default {
               break;
           case COMMANDS.ELLIPTICAL_ARC_CURVE.test(command):
               ellipticalArcCurve(path, command, commandArguments, { state, mutations })
+              break;
+          case COMMANDS.RESIZE_CANVAS.test(command):
+              resizeCanvas(path, command, commandArguments, { state, mutations })
               break;
           default:
               console.log('Default');
@@ -555,4 +607,35 @@ function ellipticalArcCurve(path, command, commandArguments, { state, mutations 
         break;
       default:
     }
+}
+
+function resizeCanvas(path, command, commandArguments, { state, mutations }) {
+    if (commandArguments.length !== 2) {
+      if (commandArguments.length < 2) {
+        throw new Error('Missing arguments for command "Resize Canvas"');
+        return;
+      } else {
+        throw new Error('Too many arguments for command "Resize Canvas"');
+        return;
+      }
+      return;
+    }
+    
+    const canvas = {
+      width: null,
+      height: null,
+    };
+
+    try {
+      canvas.width = parseFloat(commandArguments[0]);
+      canvas.height = parseFloat(commandArguments[1]);
+      
+      validate(canvas.width).number();
+      validate(canvas.height).number();
+    } catch (errorParsingArguments) {
+      throw new Error('Error running "Resize Canvas". Some of the arguments are not "Numbers"');
+      return;
+    }
+
+    mutations.updateStep(path, null, (state.steps.length - 1));
 }

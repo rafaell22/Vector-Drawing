@@ -78,21 +78,19 @@ export default {
       },
       svgElement: null,
       svgCrosshairs: null,
+      svgBorders: null,
       background: {},
       paths: [],
   },
   setup: function() {},
   mounted: async function() {
     console.log('Initializing svg...');
-    // Calculate the viewport based on the image size
-    this.viewport.x = this.viewport.x - this.BORDER_WIDTH - this.INITIAL_VIEW_MARGIN / 2;
-    this.viewport.y = this.viewport.y - this.BORDER_WIDTH;
-    this.viewport.width = this.size.width + 2 * this.BORDER_WIDTH + this.INITIAL_VIEW_MARGIN;
-    this.viewport.height = this.size.height + 2 * this.BORDER_WIDTH;
-    
     // create root svg
     this.svgElement = this.createMainSvgElement();
     
+    // start viewbox
+    this.centerViewboxOnImage();
+
     // create the image borders
     this.svgElement.appendChild(this.createImageBorders());
    
@@ -107,83 +105,52 @@ export default {
     this.app.$stores.drawing.actions.draw('M 0 0');
   },
   methods: {
-    loadImage: function(src) {
-      return new Promise((resolve, reject) => {
-        const elImage = document.createElement('IMG');
-        elImage.addEventListener('load', function() {
-          resolve(elImage);
-        });
-        elImage.src = `../../images/${src}.png`;
-      });
-    },
-    loadImages: async function(sources) {
-      for(let sourceIndex = (sources.length - 1); sourceIndex > -1; sourceIndex--) {
-        this.cache.images[sources[sourceIndex]] = await this.loadImage(sources[sourceIndex]);
-      }
-    },
-    loadJson: function(url) {
-      return new Promise((resolve, reject) => {
-        const request = new XMLHttpRequest();
-        request.onreadystatechange = function() {
-          // if DONE and SUCCESS
-          if ((request.readyState == 4) && (request.status == 200)) {
-            resolve(JSON.parse(request.responseText));
-          }
-        }
-        request.open("GET", url + ".json", true);
-        request.onError = function(event) { 
-          console.log('ERROR!')
-          throw new Error(event); 
-        };
-        request.send();
-      });
-    },
-    loadJsons: async function(urls) {
-      for(let urlIndex = (urls.length - 1); urlIndex > -1; urlIndex--) {
-        this.cache.jsons[urls[urlIndex]] = await this.loadJson(urls[urlIndex]);
-      }
-    },
-    copyTouch: function({ identifier, pageX, pageY }) {
-      return { identifier, pageX, pageY };
-    },
-    ongoingTouchIndexById: function(ongoingTouch, touches) {
-      for (let i = 0; i < touches.length; i++) {
-        let id = touches[i].identifier;
+      // create a copy of a touch object
+      copyTouch: function({ identifier, pageX, pageY }) {
+          return { identifier, pageX, pageY };
+      },
+      // find the index of a touch object from an array of touches by unique identifier
+      ongoingTouchIndexById: function(ongoingTouch, touches) {
+      for (let touchIndex = 0; touchIndex < touches.length; touchIndex++) {
+        let id = touches[touchIndex].identifier;
 
         if (id == ongoingTouch.identifier) {
-          return i;
+          return touchIndex;
         }
       }
       return -1;    // not found
     },
+    // callback called for the event touchstart
     svgTouchStart: function(event) {
-      event.preventDefault();
-      const touches = event.changedTouches;
-      this.prevTouch = this.copyTouch(touches[0]);
+        event.preventDefault();
+        const touches = event.changedTouches;
+        this.prevTouch = this.copyTouch(touches[0]);
     },
+    // callback called for the event touchmove
     svgTouchMove: function(event) {
-      event.preventDefault();
-      const touches = event.changedTouches;
+        event.preventDefault();
+        const touches = event.changedTouches;
       
-      const idx = this.ongoingTouchIndexById(this.prevTouch, touches);
+        const idx = this.ongoingTouchIndexById(this.prevTouch, touches);
 
-      if (idx >= 0) {        
-        const dX = this.prevTouch.pageX - touches[idx].pageX;
-        const dY = this.prevTouch.pageY - touches[idx].pageY;
+        if (idx >= 0) {        
+            const dX = this.prevTouch.pageX - touches[idx].pageX;
+            const dY = this.prevTouch.pageY - touches[idx].pageY;
 
-        // For this app, the bigger the perceived zoom is inversely proportional to the zoom value.
-        // That means bigger zoom values mean the user see the image smaller and vice-versa.
-        // The zoom is applied to the touch movement because we want the user to move "more" the more they are zoomed out (as the convas is showing more and more pixels)
-        this.viewport.x += dX * this.TOUCH_MOVE_MODIFIER * this.zoom;
-        this.viewport.y += dY * this.TOUCH_MOVE_MODIFIER * this.zoom;
+            // For this app, the bigger the perceived zoom is inversely proportional to the zoom value.
+            // That means bigger zoom values mean the user see the image smaller and vice-versa.
+            // The zoom is applied to the touch movement because we want the user to move "more" the more they are zoomed out (as the convas is showing more and more pixels)
+            this.viewport.x += dX * this.TOUCH_MOVE_MODIFIER * this.zoom;
+            this.viewport.y += dY * this.TOUCH_MOVE_MODIFIER * this.zoom;
 
-        this.svgElement.setAttributeNS(null, 'viewBox', `${this.viewport.x} ${this.viewport.y} ${this.viewport.width * this.zoom} ${this.viewport.height * this.zoom}`);
+            this.svgElement.setAttributeNS(null, 'viewBox', `${this.viewport.x} ${this.viewport.y} ${this.viewport.width * this.zoom} ${this.viewport.height * this.zoom}`);
 
-        this.prevTouch = this.copyTouch(touches[idx]);  // swap in the new touch record
-      } else {
-        console.log("can't figure out which touch to continue");
-      }
+            this.prevTouch = this.copyTouch(touches[idx]);  // swap in the new touch record
+          } else {
+            console.log("can't figure out which touch to continue");
+          }
     },
+    // callback called for the event touchend
     svgTouchEnd: function(event) {
       event.preventDefault();
       const touches = event.changedTouches;
@@ -194,43 +161,61 @@ export default {
         console.log("can't figure out which touch to continue");
       }
     },
+    // callback called for the event touchcancel
     svgTouchCancel: function(event) {
-      event.preventDefault();
-      const touches = event.changedTouches;
-      const idx = this.ongoingTouchIndexById(this.prevTouch, touches);
-      if (idx >= 0) {
-        this.prevTouch = {};
-      } else {
-        console.log("can't figure out which touch to continue");
-      }
+        event.preventDefault();
+        const touches = event.changedTouches;
+        const idx = this.ongoingTouchIndexById(this.prevTouch, touches);
+        if (idx >= 0) {
+            this.prevTouch = {};
+        } else {
+            console.log("can't figure out which touch to continue");
+        }
     },
+    // zooms in the canvas (increase image size)
     zoomIn: function(event) {
-      this.zoom *= this.ZOOM_FACTOR;
-      this.svgElement.setAttributeNS(null, 'viewBox', `${this.viewport.x} ${this.viewport.y} ${this.viewport.width * this.zoom} ${this.viewport.height * this.zoom}`);
+        this.zoom *= this.ZOOM_FACTOR;
+        this.svgElement.setAttributeNS(null, 'viewBox', `${this.viewport.x} ${this.viewport.y} ${this.viewport.width * this.zoom} ${this.viewport.height * this.zoom}`);
     },
+    // zooms out the canvas (decrease image size)
     zoomOut: function(event) {
         // if(this.zoom >= 2) return;
         this.zoom /= this.ZOOM_FACTOR;
         this.svgElement.setAttributeNS(null, 'viewBox', `${this.viewport.x} ${this.viewport.y} ${this.viewport.width * this.zoom} ${this.viewport.height * this.zoom}`);
     },
+    // update the svg viewbox to center on the image
+    centerViewboxOnImage: function() {
+         // Calculate the viewport based on the image size
+        this.viewport.x = this.viewport.x - this.BORDER_WIDTH - this.INITIAL_VIEW_MARGIN / 2;
+        this.viewport.y = this.viewport.y - this.BORDER_WIDTH;
+        this.viewport.width = this.size.width + 2 * this.BORDER_WIDTH + this.INITIAL_VIEW_MARGIN;
+        this.viewport.height = this.size.height + 2 * this.BORDER_WIDTH;
+        
+        this.svgElement.setAttributeNS(null, 'viewBox', `${this.viewport.x} ${this.viewport.y} ${this.viewport.width} ${this.viewport.height}`);
+    },
+    // create the main svg element. It pccupies the full screen;
     createMainSvgElement: function() {
         // create the main svg element
         const svgElement = document.createElementNS(this.XMLNS, 'svg');
-        svgElement.setAttributeNS(null, 'viewBox', `${this.viewport.x} ${this.viewport.y} ${this.viewport.width} ${this.viewport.height}`);
         svgElement.setAttributeNS(null, 'width', window.innerWidth);
         svgElement.setAttributeNS(null, 'height', window.innerHeight); // - 140);
         svgElement.style.backgroundColor = '#dddddd';
         
         return svgElement;
     },
+    // create a path string for the borders of the image limits
+    createImageBordersPath: function() {
+        return `
+            M -${this.BORDER_WIDTH} -${this.BORDER_WIDTH} 
+            h ${this.size.width + 2 * this.BORDER_WIDTH} 
+            v ${this.size.height + 2 * this.BORDER_WIDTH} 
+            h -${this.size.width + 2 * this.BORDER_WIDTH} 
+            Z`;
+    },
+    // create an g elemebt with paths defining the image limits (width, height)
     createImageBorders: function() {
         const g = document.createElementNS(this.XMLNS, 'g');
-        const imageBorders = `
-          M -${this.BORDER_WIDTH} -${this.BORDER_WIDTH} 
-          h ${this.size.width + 2 * this.BORDER_WIDTH} 
-          v ${this.size.height + 2 * this.BORDER_WIDTH} 
-          h -${this.size.width + 2 * this.BORDER_WIDTH} 
-          Z`;
+        const imageBorders = this.createImageBordersPath();
         const path = document.createElementNS(this.XMLNS, 'path');
         path.setAttributeNS(null, 'stroke', '#000000');
         path.setAttributeNS(null, 'stroke-width', this.BORDER_WIDTH);
@@ -238,10 +223,13 @@ export default {
         path.setAttributeNS(null, 'd', imageBorders);
         path.setAttributeNS(null, 'opacity', 1.0);
         path.setAttributeNS(null, 'fill', '#ffffff');
+        
+        this.svgBorders = path;
         g.appendChild(path);
         
         return g;
     },
+    // create element to show the current path position
     createImageCrosshairs: function() {
         const g = document.createElementNS(this.XMLNS, 'g');
         const crosshairs = `
@@ -259,6 +247,7 @@ export default {
         
         return g;
     },
+    // add all event listeners
     addEventListeners: function() {
          //adding event listeners
         console.log('Adding event listeners...');
@@ -271,6 +260,7 @@ export default {
         this.rootElement.querySelector('.zoom-in').addEventListener('click', this.zoomIn.bind(this));
         this.rootElement.querySelector('.zoom-out').addEventListener('click', this.zoomOut.bind(this));
         
+        // store mutations watchers
         this.app.$pubSub.subscribe('store.drawing.addStep', (function() {
           const steps = this.app.$stores.drawing.getters.steps;
           const lastStep = steps[steps.length - 1];
@@ -295,8 +285,22 @@ export default {
             const crosshairsPosition = this.app.$stores.drawing.getters.crosshairs;
             this.svgCrosshairs.setAttributeNS(null, 'transform', `translate(${crosshairsPosition.x} ${crosshairsPosition.y})`);
         }).bind(this));
+        
+        this.app.$pubSub.subscribe('store.drawing.setCanvasSize', (function() {
+            console.log('event/store.drawing.setCanvasSize');
+            const canvas = this.app.$stores.drawing.getters.canvas;
+            this.size.width = canvas.width;
+            this.size.height = canvas.height;
+            
+            // update the current borders
+            this.updateImageBorders();
+            
+            // update the viewbox
+           this.centerViewboxOnImage();
+        }).bind(this));
         console.log('Done!');
     },
+    // add a new path element to the svg
     addNewPath: function(step) {
         // create the main svg element
         const elPath = document.createElementNS(this.XMLNS, 'path');
@@ -312,6 +316,7 @@ export default {
 
         return elPath;
     },
+    // update the last created path
     updatePath: function(step) {
         // create the main svg element
         const children = this.svgElement.children;
@@ -326,5 +331,10 @@ export default {
           lastPath.setAttributeNS(null, 'fill', step.fill.color);
         }
     },
+    // update the image borders (after resize)
+    updateImageBorders: function() {
+        const borders = this.createImageBordersPath();
+        this.svgBorders.setAttributeNS(null, 'd', borders);
+   }
   },
 };
