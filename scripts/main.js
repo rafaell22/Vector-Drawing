@@ -13,7 +13,7 @@ import SvgCanvas from './components/SvgCanvas.js';
 
 // app.createComponent('Canvas', Canvas);
 //app.createComponent('DrawStepSimplifiedInput', DrawStepSimplifiedInput);
- app.createComponent('DrawStepInput', DrawStepInput);
+app.createComponent('DrawStepInput', DrawStepInput);
 app.createComponent('SvgCanvas', SvgCanvas);
 // app.createComponent('AddEntity', AddEntity);
 
