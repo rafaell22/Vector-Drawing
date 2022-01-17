@@ -171,6 +171,9 @@ export default {
       crosshairs: function() {
         return this.state.crosshairs;
       },
+      canvas: function() {
+        return this.state.canvas;
+      },
     },
 };
 
@@ -637,5 +640,6 @@ function resizeCanvas(path, command, commandArguments, { state, mutations }) {
       return;
     }
 
-    mutations.updateStep(path, null, (state.steps.length - 1));
+    console.log('drawing/resizeCanvas/canvas: ', canvas);
+    mutations.setCanvasSize(canvas);
 }

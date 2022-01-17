@@ -186,8 +186,8 @@ export default {
     // update the svg viewbox to center on the image
     centerViewboxOnImage: function() {
          // Calculate the viewport based on the image size
-        this.viewport.x = this.viewport.x - this.BORDER_WIDTH - this.INITIAL_VIEW_MARGIN / 2;
-        this.viewport.y = this.viewport.y - this.BORDER_WIDTH;
+        this.viewport.x = - this.BORDER_WIDTH - this.INITIAL_VIEW_MARGIN / 2;
+        this.viewport.y = - this.BORDER_WIDTH;
         this.viewport.width = this.size.width + 2 * this.BORDER_WIDTH + this.INITIAL_VIEW_MARGIN;
         this.viewport.height = this.size.height + 2 * this.BORDER_WIDTH;
         
@@ -287,7 +287,6 @@ export default {
         }).bind(this));
         
         this.app.$pubSub.subscribe('store.drawing.setCanvasSize', (function() {
-            console.log('event/store.drawing.setCanvasSize');
             const canvas = this.app.$stores.drawing.getters.canvas;
             this.size.width = canvas.width;
             this.size.height = canvas.height;
