@@ -77,16 +77,19 @@ export default {
           jsons: []
       },
       svgElement: null,
+      pathsGroupElement: null,
       svgCrosshairs: null,
       svgBorders: null,
       background: {},
       paths: [],
   },
   setup: function() {},
-  mounted: async function() {
+  mounted: function() {
     console.log('Initializing svg...');
     // create root svg
     this.svgElement = this.createMainSvgElement();
+    
+    this.pathsGroupElement = this.createPathsGroupElement();
     
     // start viewbox
     this.centerViewboxOnImage();
@@ -96,6 +99,7 @@ export default {
    
     // create the image crosshairs
     this.svgCrosshairs = this.createImageCrosshairs();
+    this.svgElement.appendChild(this.pathsGroupElement);
     this.svgElement.appendChild(this.svgCrosshairs);
    
     this.rootElement.querySelector('.svg-canvas').appendChild(this.svgElement);
@@ -203,6 +207,15 @@ export default {
         
         return svgElement;
     },
+    createPathsGroupElement: function() {
+        // create the main svg element
+        const pathsGroupElement = document.createElementNS(this.XMLNS, 'g');
+        pathsGroupElement.setAttributeNS(null, 'width', window.innerWidth);
+        pathsGroupElement.setAttributeNS(null, 'height', window.innerHeight); // - 140);
+        pathsGroupElement.style.backgroundColor = '#dddddd';
+        
+        return pathsGroupElement;
+    },
     // create a path string for the borders of the image limits
     createImageBordersPath: function() {
         return `
@@ -265,8 +278,8 @@ export default {
           const steps = this.app.$stores.drawing.getters.steps;
           const lastStep = steps[steps.length - 1];
           this.paths.push(lastStep);
-          const newPath = this.addNewPath(lastStep);
-          this.svgElement.appendChild(newPath);
+          const newPath = this.createNewPath(lastStep);
+          this.pathsGroupElement.appendChild(newPath);
         }).bind(this));
         
         this.app.$pubSub.subscribe('store.drawing.updateStep', (function() {
@@ -300,7 +313,7 @@ export default {
         console.log('Done!');
     },
     // add a new path element to the svg
-    addNewPath: function(step) {
+    createNewPath: function(step) {
         // create the main svg element
         const elPath = document.createElementNS(this.XMLNS, 'path');
         elPath.setAttributeNS(null, 'stroke', step.stroke.color);
