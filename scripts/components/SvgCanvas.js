@@ -68,20 +68,11 @@ export default {
       viewport: { x: 0, y: 0, width: 0, height: 0 },
       size: { width: 48, height: 48 },
       zoom: 1,
-      imageCache: [
-        'woodTable'
-      ],
-      jsonCache: [],
-      cache: {
-          images: [],
-          jsons: []
-      },
       svgElement: null,
       pathsGroupElement: null,
       svgCrosshairs: null,
       svgBorders: null,
       background: {},
-      paths: [],
   },
   setup: function() {},
   mounted: function() {
@@ -90,6 +81,7 @@ export default {
     this.svgElement = this.createMainSvgElement();
     
     this.pathsGroupElement = this.createPathsGroupElement();
+    this.svgElement.appendChild(this.pathsGroupElement);
     
     // start viewbox
     this.centerViewboxOnImage();
@@ -210,9 +202,6 @@ export default {
     createPathsGroupElement: function() {
         // create the main svg element
         const pathsGroupElement = document.createElementNS(this.XMLNS, 'g');
-        pathsGroupElement.setAttributeNS(null, 'width', window.innerWidth);
-        pathsGroupElement.setAttributeNS(null, 'height', window.innerHeight); // - 140);
-        pathsGroupElement.style.backgroundColor = '#dddddd';
         
         return pathsGroupElement;
     },
@@ -277,7 +266,6 @@ export default {
         this.app.$pubSub.subscribe('store.drawing.addStep', (function() {
           const steps = this.app.$stores.drawing.getters.steps;
           const lastStep = steps[steps.length - 1];
-          this.paths.push(lastStep);
           const newPath = this.createNewPath(lastStep);
           this.pathsGroupElement.appendChild(newPath);
         }).bind(this));
@@ -285,7 +273,6 @@ export default {
         this.app.$pubSub.subscribe('store.drawing.updateStep', (function() {
           const steps = this.app.$stores.drawing.getters.steps;
           const lastStep = steps[steps.length - 1];
-          this.paths.push(steps[lastStep]);
           this.updatePath(lastStep);
         }).bind(this));
         
@@ -309,6 +296,11 @@ export default {
             
             // update the viewbox
            this.centerViewboxOnImage();
+        }).bind(this));
+        
+        this.app.$pubSub.subscribe('store.drawing.deleteSteps', (function() {
+            while(this.pathsGroupElement.firstChild)
+                this.pathsGroupElement.removeChild(this.pathsGroupElement.firstChild);
         }).bind(this));
         console.log('Done!');
     },

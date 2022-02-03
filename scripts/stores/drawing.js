@@ -15,6 +15,7 @@ const COMMANDS = {
   SMOOTH_QUADRATIC_BEZIER_CURVE: new RegExp('^t$', 'i'),
   ELLIPTICAL_ARC_CURVE: new RegExp('^a$', 'i'),
   RESIZE_CANVAS: new RegExp('^resize-canvas$', 'i'),
+  CLEAR_CANVAS: new RegExp('^clear-canvas$', 'i'),
 }
 
 export default {
@@ -75,6 +76,9 @@ export default {
           state.canvas.width = width;
           state.canvas.height = height;
       },
+      deleteSteps: function({ state }) {
+          state.steps = [];
+      }
     },
     actions: {
         // load images from local folder
@@ -157,6 +161,9 @@ export default {
               break;
           case COMMANDS.RESIZE_CANVAS.test(command):
               resizeCanvas(path, command, commandArguments, { state, mutations })
+              break;
+          case COMMANDS.CLEAR_CANVAS.test(command): 
+              clearCanvas({ state, mutations });
               break;
           default:
               console.log('Default');
@@ -642,4 +649,8 @@ function resizeCanvas(path, command, commandArguments, { state, mutations }) {
 
     console.log('drawing/resizeCanvas/canvas: ', canvas);
     mutations.setCanvasSize(canvas);
+}
+
+function clearCanvas({ state, mutations }) {
+    mutations.deleteSteps();
 }
