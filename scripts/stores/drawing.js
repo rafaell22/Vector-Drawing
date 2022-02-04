@@ -32,6 +32,8 @@ export default {
     },
     mutations: {
       addStep: function({ state }, path) {
+          console.log('mutations/addStep/state: ', state);
+          console.log('mutations/addStep/path: ', path);
           state.steps.push(new Step(path));
       },
       updateStep: function({ state }, path, pathConfig, index) {
@@ -77,7 +79,9 @@ export default {
           state.canvas.height = height;
       },
       deleteSteps: function({ state }) {
+          console.log('mutations/deleteSteps/state: ', state);
           state.steps = [];
+          console.log('mutations/deleteSteps/state: ', state);
       }
     },
     actions: {
@@ -173,6 +177,7 @@ export default {
     },
     getters: {
       steps: function() {
+        console.log('getters/steps/this.state: ', this.state);
         return this.state.steps;
       },
       crosshairs: function() {

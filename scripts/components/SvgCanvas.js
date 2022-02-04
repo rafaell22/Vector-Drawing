@@ -249,61 +249,6 @@ export default {
         
         return g;
     },
-    // add all event listeners
-    addEventListeners: function() {
-         //adding event listeners
-        console.log('Adding event listeners...');
-        this.prevTouch = {};
-        this.svgElement.addEventListener('touchstart', this.svgTouchStart.bind(this));
-        this.svgElement.addEventListener('touchmove', this.svgTouchMove.bind(this));
-        this.svgElement.addEventListener('touchend', this.svgTouchEnd.bind(this));
-        this.svgElement.addEventListener('touchcancel', this.svgTouchCancel.bind(this));
-    
-        this.rootElement.querySelector('.zoom-in').addEventListener('click', this.zoomIn.bind(this));
-        this.rootElement.querySelector('.zoom-out').addEventListener('click', this.zoomOut.bind(this));
-        
-        // store mutations watchers
-        this.app.$pubSub.subscribe('store.drawing.addStep', (function() {
-          const steps = this.app.$stores.drawing.getters.steps;
-          const lastStep = steps[steps.length - 1];
-          const newPath = this.createNewPath(lastStep);
-          this.pathsGroupElement.appendChild(newPath);
-        }).bind(this));
-        
-        this.app.$pubSub.subscribe('store.drawing.updateStep', (function() {
-          const steps = this.app.$stores.drawing.getters.steps;
-          const lastStep = steps[steps.length - 1];
-          this.updatePath(lastStep);
-        }).bind(this));
-        
-        this.app.$pubSub.subscribe('store.drawing.setCrosshairs', (function() {
-            const crosshairsPosition = this.app.$stores.drawing.getters.crosshairs;
-            this.svgCrosshairs.setAttributeNS(null, 'transform', `translate(${crosshairsPosition.x} ${crosshairsPosition.y})`);
-        }).bind(this));
-        
-        this.app.$pubSub.subscribe('store.drawing.updateCrosshairs', (function() {
-            const crosshairsPosition = this.app.$stores.drawing.getters.crosshairs;
-            this.svgCrosshairs.setAttributeNS(null, 'transform', `translate(${crosshairsPosition.x} ${crosshairsPosition.y})`);
-        }).bind(this));
-        
-        this.app.$pubSub.subscribe('store.drawing.setCanvasSize', (function() {
-            const canvas = this.app.$stores.drawing.getters.canvas;
-            this.size.width = canvas.width;
-            this.size.height = canvas.height;
-            
-            // update the current borders
-            this.updateImageBorders();
-            
-            // update the viewbox
-           this.centerViewboxOnImage();
-        }).bind(this));
-        
-        this.app.$pubSub.subscribe('store.drawing.deleteSteps', (function() {
-            while(this.pathsGroupElement.firstChild)
-                this.pathsGroupElement.removeChild(this.pathsGroupElement.firstChild);
-        }).bind(this));
-        console.log('Done!');
-    },
     // add a new path element to the svg
     createNewPath: function(step) {
         // create the main svg element
@@ -323,8 +268,9 @@ export default {
     // update the last created path
     updatePath: function(step) {
         // create the main svg element
-        const children = this.svgElement.children;
+        const children = this.pathsGroupElement.children;
         const lastPath = children[children.length - 1];
+        console.log('updatePath/lastPath: ', lastPath);
         lastPath.setAttributeNS(null, 'stroke', step.stroke.color);
         lastPath.setAttributeNS(null, 'stroke-width', step.stroke.width);
         lastPath.setAttributeNS(null, 'd', step.path);
@@ -339,6 +285,66 @@ export default {
     updateImageBorders: function() {
         const borders = this.createImageBordersPath();
         this.svgBorders.setAttributeNS(null, 'd', borders);
-   }
+   },
+   // add all event listeners
+   addEventListeners: function() {
+        //adding event listeners
+       console.log('Adding event listeners...');
+       this.prevTouch = {};
+       this.svgElement.addEventListener('touchstart', this.svgTouchStart.bind(this));
+       this.svgElement.addEventListener('touchmove', this.svgTouchMove.bind(this));
+       this.svgElement.addEventListener('touchend', this.svgTouchEnd.bind(this));
+       this.svgElement.addEventListener('touchcancel', this.svgTouchCancel.bind(this));
+   
+       this.rootElement.querySelector('.zoom-in').addEventListener('click', this.zoomIn.bind(this));
+       this.rootElement.querySelector('.zoom-out').addEventListener('click', this.zoomOut.bind(this));
+       
+       // store mutations watchers
+       this.app.$pubSub.subscribe('store.drawing.addStep', (function() {
+         const steps = this.app.$stores.drawing.getters.steps;
+         console.log('store.drawing.addStep: ', steps);
+         const lastStep = steps[steps.length - 1];
+         const newPath = this.createNewPath(lastStep);
+         this.pathsGroupElement.appendChild(newPath);
+       }).bind(this));
+       
+       this.app.$pubSub.subscribe('store.drawing.updateStep', (function() {
+         const steps = this.app.$stores.drawing.getters.steps;
+         console.log(steps);
+         const lastStep = steps[steps.length - 1];
+         console.log('LastStep: ', lastStep);
+         this.updatePath(lastStep);
+       }).bind(this));
+       
+       this.app.$pubSub.subscribe('store.drawing.setCrosshairs', (function() {
+           const crosshairsPosition = this.app.$stores.drawing.getters.crosshairs;
+           this.svgCrosshairs.setAttributeNS(null, 'transform', `translate(${crosshairsPosition.x} ${crosshairsPosition.y})`);
+       }).bind(this));
+       
+       this.app.$pubSub.subscribe('store.drawing.updateCrosshairs', (function() {
+           const crosshairsPosition = this.app.$stores.drawing.getters.crosshairs;
+           this.svgCrosshairs.setAttributeNS(null, 'transform', `translate(${crosshairsPosition.x} ${crosshairsPosition.y})`);
+       }).bind(this));
+       
+       this.app.$pubSub.subscribe('store.drawing.setCanvasSize', (function() {
+           const canvas = this.app.$stores.drawing.getters.canvas;
+           this.size.width = canvas.width;
+           this.size.height = canvas.height;
+           
+           // update the current borders
+           this.updateImageBorders();
+           
+           // update the viewbox
+          this.centerViewboxOnImage();
+       }).bind(this));
+       
+       this.app.$pubSub.subscribe('store.drawing.deleteSteps', (function() {
+           while(this.pathsGroupElement.firstChild)
+               this.pathsGroupElement.removeChild(this.pathsGroupElement.firstChild);
+               
+            console.log('this.app.$pubSub/store.drawing.deleteSteps/this.pathsGroupElement: ', this.pathsGroupElement);
+       }).bind(this));
+       console.log('Done!');
+   },
   },
 };
